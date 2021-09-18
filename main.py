@@ -1,4 +1,4 @@
-from os import TMP_MAX, listdir
+from os import listdir
 import xml.etree.ElementTree as ET
 from tabulate import tabulate
 CFDI3XMLKeysPrefix = '{http://www.sat.gob.mx/cfd/3}'
@@ -29,8 +29,16 @@ def main():
         for child in root:
             if(child.tag == CFDI3XMLKeysPrefix + 'Emisor'):
                 nombreEmisor = child.attrib['Nombre']
+            if(child.tag == CFDI3XMLKeysPrefix + 'Receptor'):
+                try:
+                    nombreReceptor = child.attrib['Nombre']
+                except:
+                    nombreReceptor = ''
             if(child.tag == CFDI3XMLKeysPrefix + 'Impuestos'):
-                totalImpuestoTrasladado = float(child.attrib['TotalImpuestosTrasladados'])
+                try:
+                    totalImpuestoTrasladado = float(child.attrib['TotalImpuestosTrasladados'])
+                except:
+                    totalImpuestoTrasladado = 0.0
 
             try:
                 if(child.tag == CFDI3XMLKeysPrefix + 'Conceptos'):
@@ -52,8 +60,7 @@ def main():
                                     base += baseArticulo
                                 if (impuesto['Impuesto'] == '003'):
                                     resultTax['Impuestos'] += importeImpuestoArticulo
-                                importeImpuesto += importeImpuestoArticulo
-                                
+                                importeImpuesto += importeImpuestoArticulo  
             except:
                 print('Skipping tax calculation of ' + currentFile)
         
@@ -70,7 +77,7 @@ def main():
         result['Totales'] += totalGlobal
         result['Impuestos'] += totalImpuestoTrasladado
 
-        row = [date, nombreEmisor, subtotalGlobal, totalImpuestoTrasladado, totalGlobal, currentFile]
+        row = [date, nombreEmisor, nombreReceptor, subtotalGlobal, totalImpuestoTrasladado, totalGlobal, currentFile]
         data.append(row)
         if (totalImpuestoTrasladado > 0):
             taxData.append(row)
@@ -78,21 +85,21 @@ def main():
             taxFreeData.append(row)
     
     print('\n\nResultado total:')
-    print(tabulate(data, headers=["Fecha", "Emisor", "SubTotal", "Impuestos", "Total", "Archivo"]))
+    print(tabulate(data, headers=["Fecha", "Emisor", "Receptor", "SubTotal", "Impuestos", "Total", "Archivo"]))
     print('Resultado total final:')
     finalResult = [list(result.values())]
     print(tabulate(finalResult, headers=["Subtotales", "Total Impuestos", "Total Final"]))
 
     resultTax['Totales'] += resultTax['Impuestos'] + resultTax['Subtotales']
     print('\n\nResultado facturas CON impuestos: (' + str(len(taxData)) + ')')
-    print(tabulate(taxData, headers=["Fecha", "Emisor", "SubTotal", "Impuestos", "Total", "Archivo"]))
+    print(tabulate(taxData, headers=["Fecha", "Emisor", "Receptor", "SubTotal", "Impuestos", "Total", "Archivo"]))
     print('Resultado total final CON impuestos:')
     finalResult = [list(resultTax.values())]
     print(tabulate(finalResult, headers=["Subtotales", "Total Impuestos", "Total Final"]))
 
     resultTaxFree['Totales'] += resultTaxFree['Impuestos'] + resultTaxFree['Subtotales']
     print('\n\nResultado facturas SIN impuestos: (' + str(len(taxFreeData)) + ')')
-    print(tabulate(taxFreeData, headers=["Fecha", "Emisor", "SubTotal", "Impuestos", "Total", "Archivo"]))
+    print(tabulate(taxFreeData, headers=["Fecha", "Emisor", "Receptor", "SubTotal", "Impuestos", "Total", "Archivo"]))
     print('Resultado total final SIN impuestos:')
     finalResult = [list(resultTaxFree.values())]
     print(tabulate(finalResult, headers=["Subtotales", "Total Impuestos", "Total Final"]))
