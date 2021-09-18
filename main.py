@@ -47,7 +47,6 @@ def main():
                                         resultTax['Impuestos'] += importeImpuestoArticulo
                                         resultTax['Subtotales'] += baseArticulo
                                     elif(impuesto['TasaOCuota'] == '0.000000'):
-                                        print(date + ' ' + currentFile + '' + nombreEmisor)
                                         resultTaxFree['Impuestos'] += importeImpuestoArticulo
                                         resultTaxFree['Subtotales'] += baseArticulo
                                     base += baseArticulo
